@@ -11,6 +11,7 @@ Breaking changes:
  * Standard JSON Interface: Add option to disable or choose hash method between IPFS and Swarm for the bytecode metadata.
  * Syntax: ``push(element)`` for dynamic storage arrays do not return the new length anymore.
  * Inline Assembly: Only strict inline assembly is allowed.
+ * Syntax: ``length`` member of arrays is now always read-only, even for storage arrays.
  * Type checker: Resulting type of exponentiation is equal to the type of the base. Also allow signed types for the base.
 
 Language Features:
