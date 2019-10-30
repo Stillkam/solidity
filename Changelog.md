@@ -5,6 +5,7 @@ Language Features:
 
 Compiler Features:
  * Code Generator: Use SELFBALANCE for ``address(this).balance`` if using Istanbul EVM
+ * Standard JSON Interface: Output the storage layout of a contract when artifact ``storageLayout`` is requested.
 
 
 Bugfixes:
