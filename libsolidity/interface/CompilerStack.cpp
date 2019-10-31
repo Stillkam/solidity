@@ -677,7 +677,7 @@ Json::Value const& CompilerStack::storageLayout(Contract const& _contract) const
 
 	// caches the result
 	if (!_contract.storageLayout)
-		_contract.storageLayout.reset(new Json::Value(StorageLayout::generate(*_contract.contract)));
+		_contract.storageLayout.reset(new Json::Value(StorageLayout().generate(*_contract.contract)));
 
 	return *_contract.storageLayout;
 }
