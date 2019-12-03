@@ -27,6 +27,16 @@
 using namespace std;
 using namespace langutil;
 
+void ParserBase::setScanner(shared_ptr<Scanner> const& _scanner)
+{
+	m_scanner = _scanner;
+}
+
+std::shared_ptr<Scanner> ParserBase::getScanner()
+{
+    return m_scanner;
+}
+
 int ParserBase::position() const
 {
 	return m_scanner->currentLocation().start;

@@ -47,6 +47,9 @@ public:
 
 	std::shared_ptr<CharStream> source() const { return m_scanner->charStream(); }
 
+	void setScanner(std::shared_ptr<Scanner> const& scanner);
+    std::shared_ptr<Scanner>  getScanner();
+
 protected:
 	/// Utility class that creates an error and throws an exception if the
 	/// recursion depth is too deep.

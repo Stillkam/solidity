@@ -1,5 +1,7 @@
 # Until we have a clear separation, libyul has to be included here
 set(sources
+	injection/CodeGenerator.cpp
+	injection/CodeGenerator.h
 	analysis/ConstantEvaluator.cpp
 	analysis/ConstantEvaluator.h
 	analysis/ContractLevelChecker.cpp

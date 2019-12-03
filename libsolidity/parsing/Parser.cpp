@@ -73,6 +73,14 @@ private:
 	SourceLocation m_location;
 };
 
+ASTPointer<VariableDeclaration> Parser::parseGlobalVariableDeclaration()
+{
+    VarDeclParserOptions options;
+    options.isStateVariable = true;
+    options.allowInitialValue = true;
+    return parseVariableDeclaration(options);
+}
+
 ASTPointer<SourceUnit> Parser::parse(shared_ptr<Scanner> const& _scanner)
 {
 	try

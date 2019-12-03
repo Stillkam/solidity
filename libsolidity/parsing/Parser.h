@@ -50,6 +50,12 @@ public:
 
 	ASTPointer<SourceUnit> parse(std::shared_ptr<langutil::Scanner> const& _scanner);
 
+	ASTPointer<ModifierDefinition> parseModifierDefinition();
+    ASTPointer<ModifierInvocation> parseModifierInvocation();
+    ASTPointer<Statement> parseStatement();
+    ASTPointer<VariableDeclaration> parseGlobalVariableDeclaration();
+
+
 private:
 	class ASTNodeFactory;
 
@@ -99,10 +105,10 @@ private:
 		VarDeclParserOptions const& _options = {},
 		ASTPointer<TypeName> const& _lookAheadArrayType = ASTPointer<TypeName>()
 	);
-	ASTPointer<ModifierDefinition> parseModifierDefinition();
+//	 ASTPointer<ModifierDefinition> parseModifierDefinition();
 	ASTPointer<EventDefinition> parseEventDefinition();
 	ASTPointer<UsingForDirective> parseUsingDirective();
-	ASTPointer<ModifierInvocation> parseModifierInvocation();
+//	ASTPointer<ModifierInvocation> parseModifierInvocation();
 	ASTPointer<Identifier> parseIdentifier();
 	ASTPointer<UserDefinedTypeName> parseUserDefinedTypeName();
 	ASTPointer<TypeName> parseTypeNameSuffix(ASTPointer<TypeName> type, ASTNodeFactory& nodeFactory);
@@ -114,7 +120,7 @@ private:
 		bool _allowEmpty = true
 	);
 	ASTPointer<Block> parseBlock(ASTPointer<ASTString> const& _docString = {});
-	ASTPointer<Statement> parseStatement();
+//	ASTPointer<Statement> parseStatement();
 	ASTPointer<InlineAssembly> parseInlineAssembly(ASTPointer<ASTString> const& _docString = {});
 	ASTPointer<IfStatement> parseIfStatement(ASTPointer<ASTString> const& _docString);
 	ASTPointer<WhileStatement> parseWhileStatement(ASTPointer<ASTString> const& _docString);
