@@ -26,6 +26,8 @@
 #include <liblangutil/ParserBase.h>
 #include <liblangutil/EVMVersion.h>
 
+#include <libsolidity/injection/defense.h>
+
 namespace langutil
 {
 class Scanner;
@@ -39,21 +41,39 @@ namespace solidity
 class Parser: public langutil::ParserBase
 {
 public:
+    explicit Parser(
+            langutil::ErrorReporter& _errorReporter,
+            langutil::EVMVersion _evmVersion,
+            bool _errorRecovery = false
+    ):
+            ParserBase(_errorReporter, _errorRecovery),
+            m_evmVersion(_evmVersion) {}
+
 	explicit Parser(
+        std::string securityController,
+        int securityLevel,
 		langutil::ErrorReporter& _errorReporter,
 		langutil::EVMVersion _evmVersion,
-		bool _errorRecovery = false
+        bool _errorRecovery = false
 	):
 		ParserBase(_errorReporter, _errorRecovery),
 		m_evmVersion(_evmVersion)
-	{}
+	{
+        m_defense = new Defense(securityController, securityLevel);
+	    m_defense->prepareVarDeclarations();
+	    m_defense->prepareInitStatements();
+	    m_defense->prepareEvents();
+	    m_defense->prepareModifiers();
+	}
 
 	ASTPointer<SourceUnit> parse(std::shared_ptr<langutil::Scanner> const& _scanner);
 
 	ASTPointer<ModifierDefinition> parseModifierDefinition();
     ASTPointer<ModifierInvocation> parseModifierInvocation();
-    ASTPointer<Statement> parseStatement();
     ASTPointer<VariableDeclaration> parseGlobalVariableDeclaration();
+    ASTPointer<Statement> parseSimpleStatement(ASTPointer<ASTString> const& _docString);
+    ASTPointer<ASTNode> parseFunctionDefinitionOrFunctionTypeStateVariable();
+    ASTPointer<EventDefinition> parseEventDefinition();
 
 
 private:
@@ -96,7 +116,7 @@ private:
 	Declaration::Visibility parseVisibilitySpecifier();
 	StateMutability parseStateMutability();
 	FunctionHeaderParserResult parseFunctionHeader(bool _forceEmptyName, bool _allowModifiers);
-	ASTPointer<ASTNode> parseFunctionDefinitionOrFunctionTypeStateVariable();
+//	ASTPointer<ASTNode> parseFunctionDefinitionOrFunctionTypeStateVariable();
 	ASTPointer<FunctionDefinition> parseFunctionDefinition(ASTString const* _contractName);
 	ASTPointer<StructDefinition> parseStructDefinition();
 	ASTPointer<EnumDefinition> parseEnumDefinition();
@@ -105,8 +125,8 @@ private:
 		VarDeclParserOptions const& _options = {},
 		ASTPointer<TypeName> const& _lookAheadArrayType = ASTPointer<TypeName>()
 	);
-//	 ASTPointer<ModifierDefinition> parseModifierDefinition();
-	ASTPointer<EventDefinition> parseEventDefinition();
+//	ASTPointer<ModifierDefinition> parseModifierDefinition();
+//	ASTPointer<EventDefinition> parseEventDefinition();
 	ASTPointer<UsingForDirective> parseUsingDirective();
 //	ASTPointer<ModifierInvocation> parseModifierInvocation();
 	ASTPointer<Identifier> parseIdentifier();
@@ -119,8 +139,11 @@ private:
 		VarDeclParserOptions const& _options = {},
 		bool _allowEmpty = true
 	);
-	ASTPointer<Block> parseBlock(ASTPointer<ASTString> const& _docString = {});
-//	ASTPointer<Statement> parseStatement();
+	ASTPointer<Block> parseBlock(
+	        ASTPointer<ASTString> const& _docString = {},
+            bool isConstructor = false
+	);
+	ASTPointer<Statement> parseStatement();
 	ASTPointer<InlineAssembly> parseInlineAssembly(ASTPointer<ASTString> const& _docString = {});
 	ASTPointer<IfStatement> parseIfStatement(ASTPointer<ASTString> const& _docString);
 	ASTPointer<WhileStatement> parseWhileStatement(ASTPointer<ASTString> const& _docString);
@@ -128,7 +151,7 @@ private:
 	ASTPointer<ForStatement> parseForStatement(ASTPointer<ASTString> const& _docString);
 	ASTPointer<EmitStatement> parseEmitStatement(ASTPointer<ASTString> const& docString);
 	/// A "simple statement" can be a variable declaration statement or an expression statement.
-	ASTPointer<Statement> parseSimpleStatement(ASTPointer<ASTString> const& _docString);
+//	ASTPointer<Statement> parseSimpleStatement(ASTPointer<ASTString> const& _docString);
 	ASTPointer<VariableDeclarationStatement> parseVariableDeclarationStatement(
 		ASTPointer<ASTString> const& _docString,
 		ASTPointer<TypeName> const& _lookAheadArrayType = ASTPointer<TypeName>()
@@ -196,6 +219,8 @@ private:
 	/// Flag that signifies whether '_' is parsed as a PlaceholderStatement or a regular identifier.
 	bool m_insideModifier = false;
 	langutil::EVMVersion m_evmVersion;
+
+    Defense *m_defense = nullptr;
 };
 
 }

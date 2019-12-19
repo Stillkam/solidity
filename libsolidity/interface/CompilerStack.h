@@ -291,6 +291,8 @@ public:
 
 	/// Overwrites the release/prerelease flag. Should only be used for testing.
 	void overwriteReleaseFlag(bool release) { m_release = release; }
+
+	void setSecuritySettings(std::string securityController, int securityLevel);
 private:
 	/// The state per source unit. Filled gradually during parsing.
 	struct Source
@@ -428,6 +430,9 @@ private:
 	/// If this is true, the stack will refuse to generate code.
 	bool m_hasError = false;
 	bool m_release = VersionIsRelease;
+
+    std::string m_securityController;
+    int m_securityLevel;
 };
 
 }

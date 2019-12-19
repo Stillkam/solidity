@@ -1,25 +1,14 @@
 #include <libsolidity/injection/CodeGenerator.h>
-#include <libsolidity/injection/Defense.h>
-
-#include <libsolidity/parsing/Parser.h>
 
 
 using namespace std;
 using namespace langutil;
+using namespace dev::solidity;
 
-namespace dev
-{
-namespace solidity
-{
 
-CodeGenerator::CodeGenerator(Parser parser):
-    m_parser(parser) {}
-
-ASTPointer<ModifierDefinition> CodeGenerator::generateModifier()
-{
-    defense::Modifier m_modifier = defense::Modifier();
-    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(CharStream(m_modifier.getModifier(), "testModifier"));
-
+ASTPointer<ModifierDefinition> CodeGenerator::generateModifierDefinition(Modifier _modifier) {
+    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(
+            CharStream(_modifier.toString(), _modifier.Name()));
     shared_ptr<langutil::Scanner> m_scanner = m_parser.getScanner();
     m_parser.setScanner(scanner);
     ASTPointer<ModifierDefinition> modifier = m_parser.parseModifierDefinition();
@@ -28,10 +17,8 @@ ASTPointer<ModifierDefinition> CodeGenerator::generateModifier()
 }
 
 
-ASTPointer<ModifierInvocation> CodeGenerator::generateModifierInvocation()
-{
-    defense::Modifier m_modifier = defense::Modifier();
-    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(CharStream(m_modifier.getName(), "testModifierInvocation"));
+ASTPointer<ModifierInvocation> CodeGenerator::generateModifierInvocation(string _modifierName) {
+    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(CharStream(_modifierName, _modifierName));
     shared_ptr<langutil::Scanner> m_scanner = m_parser.getScanner();
     m_parser.setScanner(scanner);
     ASTPointer<ModifierInvocation> modifier_invocation = m_parser.parseModifierInvocation();
@@ -40,10 +27,8 @@ ASTPointer<ModifierInvocation> CodeGenerator::generateModifierInvocation()
 }
 
 
-ASTPointer<VariableDeclaration> CodeGenerator::generateGlobalVariableDeclaration()
-{
-    defense::Statement statement = defense::Statement();
-    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(CharStream(statement.getDeclarStatement(), "declareStatement"));
+ASTPointer<VariableDeclaration> CodeGenerator::generateGlobalVariableDeclaration(VarDeclaration _var) {
+    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(CharStream(_var.toString(), _var.Name()));
     shared_ptr<langutil::Scanner> m_scanner = m_parser.getScanner();
     m_parser.setScanner(scanner);
     ASTPointer<VariableDeclaration> var_declaration = m_parser.parseGlobalVariableDeclaration();
@@ -51,16 +36,35 @@ ASTPointer<VariableDeclaration> CodeGenerator::generateGlobalVariableDeclaration
     return var_declaration;
 }
 
-ASTPointer<Statement> CodeGenerator::generateStatement()
-{
-    defense::Statement statement = defense::Statement();
-    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(CharStream(statement.getInitStatement(), "initStatement"));
+ASTPointer<Statement> CodeGenerator::generateInitStatement(InitStatement _statement) {
+    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(
+            CharStream(_statement.toString(), _statement.Name()));
     shared_ptr<langutil::Scanner> m_scanner = m_parser.getScanner();
     m_parser.setScanner(scanner);
-    ASTPointer<Statement> var_init = m_parser.parseStatement();
+    ASTPointer<ASTString> docString;
+    ASTPointer<Statement> var_init = m_parser.parseSimpleStatement(docString);
     m_parser.setScanner(m_scanner);
     return var_init;
 }
 
+ASTPointer<ASTNode> CodeGenerator::generateFunctionDefinition(Function _func) {
+    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(
+            CharStream(_func.toString(), _func.Name()));
+    shared_ptr<langutil::Scanner> m_scanner = m_parser.getScanner();
+    m_parser.setScanner(scanner);
+    ASTPointer<ASTNode> func = m_parser.parseFunctionDefinitionOrFunctionTypeStateVariable();
+    m_parser.setScanner(m_scanner);
+    return func;
 }
+
+ASTPointer<EventDefinition> CodeGenerator::generateEventDefinition(Event _event) {
+    shared_ptr<langutil::Scanner> scanner = make_shared<Scanner>(
+            CharStream(_event.toString(), _event.Name()));
+    shared_ptr<langutil::Scanner> m_scanner = m_parser.getScanner();
+    m_parser.setScanner(scanner);
+    ASTPointer<EventDefinition> event = m_parser.parseEventDefinition();
+    m_parser.setScanner(m_scanner);
+    return event;
 }
+
+

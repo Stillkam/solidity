@@ -226,7 +226,10 @@ bool CompilerStack::parse()
 		string const& path = sourcesToParse[i];
 		Source& source = m_sources[path];
 		source.scanner->reset();
-		source.ast = Parser(m_errorReporter, m_evmVersion, m_parserErrorRecovery).parse(source.scanner);
+		if (m_securityController.empty())
+            source.ast = Parser(m_errorReporter, m_evmVersion, m_parserErrorRecovery).parse(source.scanner);
+        else
+            source.ast = Parser(m_securityController, m_securityLevel, m_errorReporter, m_evmVersion, m_parserErrorRecovery).parse(source.scanner);
 		if (!source.ast)
 			solAssert(!Error::containsOnlyWarnings(m_errorReporter.errors()), "Parser returned null but did not report error.");
 		else
@@ -1447,4 +1450,9 @@ Json::Value CompilerStack::gasEstimates(string const& _contractName) const
 	}
 
 	return output;
+}
+
+void CompilerStack::setSecuritySettings(std::string securityController, int securityLevel) {
+    m_securityController = securityController;
+    m_securityLevel = securityLevel;
 }

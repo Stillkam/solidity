@@ -98,6 +98,8 @@ std::ostream& serr(bool _used = true)
 #define cout
 #define cerr
 
+static string const g_strSEController = "se-controller";
+static string const g_strSELevel = "se-level";
 static string const g_stdinFileNameStr = "<stdin>";
 static string const g_strAbi = "abi";
 static string const g_strAllowPaths = "allow-paths";
@@ -152,6 +154,8 @@ static string const g_strColor = "color";
 static string const g_strNoColor = "no-color";
 static string const g_strNewReporter = "new-reporter";
 
+static string const g_argSEController = g_strSEController;
+static string const g_argSELevel = g_strSELevel;
 static string const g_argAbi = g_strAbi;
 static string const g_argPrettyJson = g_strPrettyJson;
 static string const g_argAllowPaths = g_strAllowPaths;
@@ -642,6 +646,8 @@ Allowed options)",
 		po::options_description::m_default_line_length - 23
 	);
 	desc.add_options()
+	    (g_argSEController.c_str(), po::value<string>(), "Enable security control and set the address of the controller.")
+	    (g_argSELevel.c_str(), po::value<int>(), "Security level.")
 		(g_argHelp.c_str(), "Show help message and exit.")
 		(g_argVersion.c_str(), "Show version and exit.")
 		(g_strLicense.c_str(), "Show licensing information and exit.")
@@ -857,6 +863,19 @@ bool CommandLineInterface::processInput()
 		}
 	}
 
+	if (m_args.count(g_argSEController))
+    {
+	    string address = m_args[g_argSEController].as<string>();
+        if (boost::starts_with(address, "0x") && address.size() == 42)
+        {
+//            boost::to_lower(address);
+	        m_securityController = address;
+	        if (m_args.count(g_argSELevel))
+	            m_securityLevel = m_args[g_argSELevel].as<int>();
+        } else
+            return false;
+    }
+
 	if (m_args.count(g_argStandardJSON))
 	{
 		string input = dev::readStandardInput();
@@ -943,6 +962,8 @@ bool CommandLineInterface::processInput()
 
 	try
 	{
+	    if (m_args.count(g_argSEController) > 0)
+	        m_compiler->setSecuritySettings(m_securityController, m_securityLevel);
 		if (m_args.count(g_argMetadataLiteral) > 0)
 			m_compiler->useMetadataLiteralSources(true);
 		if (m_args.count(g_argInputFile))

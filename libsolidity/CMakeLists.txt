@@ -2,6 +2,10 @@
 set(sources
 	injection/CodeGenerator.cpp
 	injection/CodeGenerator.h
+	injection/Element.cpp
+	injection/Element.h
+	injection/defense.cpp
+	injection/defense.h
 	analysis/ConstantEvaluator.cpp
 	analysis/ConstantEvaluator.h
 	analysis/ContractLevelChecker.cpp
@@ -137,7 +141,7 @@ if (${CVC4_FOUND})
   message("CVC4 SMT solver found. This enables optional SMT checking with CVC4.")
   set(cvc4_SRCS formal/CVC4Interface.cpp formal/CVC4Interface.h)
 else()
-  set(cvc4_SRCS)
+  set(cvc4_SRCS injection/Element.cpp injection/defense.h injection/defense.cpp)
 endif()
 
 if (NOT (${Z3_FOUND} OR ${CVC4_FOUND}))

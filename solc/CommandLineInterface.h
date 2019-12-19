@@ -113,6 +113,9 @@ private:
 	langutil::EVMVersion m_evmVersion;
 	/// Whether or not to colorize diagnostics output.
 	bool m_coloredOutput = true;
+
+	std::string m_securityController;
+	int m_securityLevel = 1;
 };
 
 }

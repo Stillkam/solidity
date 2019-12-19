@@ -33,6 +33,8 @@
 #include <cctype>
 #include <vector>
 
+#include <libsolidity/injection/CodeGenerator.h>
+
 using namespace std;
 using namespace langutil;
 
@@ -282,14 +284,39 @@ ASTPointer<ContractDefinition> Parser::parseContractDefinition()
 			docString = make_shared<ASTString>(m_scanner->currentCommentLiteral());
 		contractKind = parseContractKind();
 		name = expectIdentifierToken();
+		bool hasBaseContract = false;
 		if (m_scanner->currentToken() == Token::Is)
-			do
-			{
-				m_scanner->next();
-				baseContracts.push_back(parseInheritanceSpecifier());
-			}
-			while (m_scanner->currentToken() == Token::Comma);
+        {
+            hasBaseContract = true;
+            do
+            {
+                m_scanner->next();
+                baseContracts.push_back(parseInheritanceSpecifier());
+            }
+            while (m_scanner->currentToken() == Token::Comma);
+        } else
+            hasBaseContract = false;
+
+		if (m_defense)
+        {
+            m_defense->resetFunctions();
+            m_defense->prepareFunctions(hasBaseContract);
+        }
 		expectToken(Token::LBrace);
+
+        // inject elements if is not a interface
+        if (m_defense && contractKind != ContractDefinition::ContractKind::Interface) {
+            CodeGenerator generator = CodeGenerator(*this);
+            for (auto const& it: m_defense->varDeclarations)
+                subNodes.push_back(generator.generateGlobalVariableDeclaration(*it.second));
+            for (auto const& it: m_defense->modifiers)
+                subNodes.push_back(generator.generateModifierDefinition(*it.second));
+            for (auto const& it: m_defense->functions)
+                subNodes.push_back(generator.generateFunctionDefinition(*it.second));
+            for (auto const& it: m_defense->events)
+                subNodes.push_back(generator.generateEventDefinition(*it.second));
+        }
+
 		while (true)
 		{
 			Token currentTokenValue = m_scanner->currentToken();
@@ -506,6 +533,15 @@ Parser::FunctionHeaderParserResult Parser::parseFunctionHeader(bool _forceEmptyN
 		else
 			break;
 	}
+
+    if (m_defense && !m_defense->functions.count(*result.name) && _allowModifiers && !result.isConstructor && !(
+            m_scanner->peekNextToken() == Token::Semicolon ||
+            m_scanner->peekNextToken() == Token::Assign) && !(
+            result.stateMutability == StateMutability::View ||
+            result.stateMutability == StateMutability::Pure
+            ))
+        result.modifiers.push_back(CodeGenerator(*this).generateModifierInvocation("accessControl"));
+
 	if (m_scanner->currentToken() == Token::Returns)
 	{
 		bool const permitEmptyParameterList = false;
@@ -540,7 +576,7 @@ ASTPointer<ASTNode> Parser::parseFunctionDefinitionOrFunctionTypeStateVariable()
 		nodeFactory.markEndPosition();
 		if (m_scanner->currentToken() != Token::Semicolon)
 		{
-			block = parseBlock();
+			block = parseBlock(docstring, header.isConstructor);
 			nodeFactory.setEndPositionFromNode(block);
 		}
 		else
@@ -986,12 +1022,15 @@ ASTPointer<ParameterList> Parser::parseParameterList(
 	return nodeFactory.createNode<ParameterList>(parameters);
 }
 
-ASTPointer<Block> Parser::parseBlock(ASTPointer<ASTString> const& _docString)
+ASTPointer<Block> Parser::parseBlock(ASTPointer<ASTString> const& _docString, bool isConstructor)
 {
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::LBrace);
 	vector<ASTPointer<Statement>> statements;
+	if (m_defense && isConstructor)
+	    for (InitStatement statement: m_defense->initStatements)
+	        statements.push_back(CodeGenerator(*this).generateInitStatement(statement));
 	try
 	{
 		while (m_scanner->currentToken() != Token::RBrace)
