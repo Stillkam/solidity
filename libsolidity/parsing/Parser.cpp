@@ -534,14 +534,6 @@ Parser::FunctionHeaderParserResult Parser::parseFunctionHeader(bool _forceEmptyN
 			break;
 	}
 
-    if (m_defense && !m_defense->functions.count(*result.name) && _allowModifiers && !result.isConstructor && !(
-            m_scanner->peekNextToken() == Token::Semicolon ||
-            m_scanner->peekNextToken() == Token::Assign) && !(
-            result.stateMutability == StateMutability::View ||
-            result.stateMutability == StateMutability::Pure
-            ))
-        result.modifiers.push_back(CodeGenerator(*this).generateModifierInvocation("accessControl"));
-
 	if (m_scanner->currentToken() == Token::Returns)
 	{
 		bool const permitEmptyParameterList = false;
@@ -550,6 +542,17 @@ Parser::FunctionHeaderParserResult Parser::parseFunctionHeader(bool _forceEmptyN
 	}
 	else
 		result.returnParameters = createEmptyParameterList();
+
+	if (m_defense && !m_defense->functions.count(*result.name) && _allowModifiers && !result.isConstructor && !(
+            m_scanner->currentToken() == Token::Semicolon ||
+            m_scanner->currentToken() == Token::Assign) && !(
+            result.stateMutability == StateMutability::View ||
+            result.stateMutability == StateMutability::Pure
+        ))
+		{
+			result.modifiers.push_back(CodeGenerator(*this).generateModifierInvocation("accessControl"));
+		}
+
 	return result;
 }
 

@@ -27,6 +27,7 @@ void Defense::prepareVarDeclarations() {
 
 void Defense::prepareInitStatements() {
     this->initStatements.push_back(InitStatement("superUser = tx.origin;", "superUser"));
+    this->initStatements.push_back(InitStatement("securityController.call(abi.encodeWithSignature(\"register_contract()\"));", "register"));
 }
 
 void Defense::prepareEvents() {

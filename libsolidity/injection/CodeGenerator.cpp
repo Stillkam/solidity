@@ -66,5 +66,3 @@ ASTPointer<EventDefinition> CodeGenerator::generateEventDefinition(Event _event)
     m_parser.setScanner(m_scanner);
     return event;
 }
-
-

@@ -49,7 +49,7 @@ string Function::toString() {
     components.push_back("function");
     string arguments = "(" + boost::algorithm::join(this->m_params, ", ") + ")";
     components.push_back(this->m_name + arguments);
-    components.push_back("external");
+    components.push_back("public");
     for (string modifier: this->m_modifierNames)
         components.push_back(modifier);
     if (this->m_returns.size() > 0) {
@@ -75,9 +75,3 @@ void Function::addParam(string param) {
 void Function::addReturn(string ret) {
     this->m_returns.push_back(ret);
 }
-
-
-
-
-
-
